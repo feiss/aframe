@@ -15,7 +15,7 @@ var initPostMessageAPI = require('./postMessage');
 var bind = utils.bind;
 var isIOS = utils.device.isIOS();
 var isMobile = utils.device.isMobile();
-var isWebXR = utils.device.isWebXR;
+var isWebXRAvailable = utils.device.isWebXRAvailable;
 var registerElement = re.registerElement;
 var warn = utils.debug('core:a-scene:warn');
 
@@ -262,7 +262,7 @@ module.exports.AScene = registerElement('a-scene', {
           vrDisplay = utils.device.getVRDisplay();
           vrManager.setDevice(vrDisplay);
           vrManager.enabled = true;
-          if (isWebXR()) {
+          if (isWebXRAvailable) {
             if (this.xrSession) { this.xrSession.removeEventListener('end', this.exitVRBound); }
             vrDisplay.requestSession({immersive: true, exclusive: true}).then(enterXRSuccess);
           } else {
@@ -270,6 +270,7 @@ module.exports.AScene = registerElement('a-scene', {
               return vrDisplay.requestPresent([{source: this.canvas}]).then(enterVRSuccess, enterVRFailure);
             }
           }
+          return Promise.resolve();
         }
         enterVRSuccess();
         return Promise.resolve();
@@ -278,6 +279,9 @@ module.exports.AScene = registerElement('a-scene', {
           self.xrSession = xrSession;
           vrManager.setSession(xrSession);
           xrSession.addEventListener('end', self.exitVRBound);
+          xrSession.requestFrameOfReference('stage').then(function (frameOfReference) {
+            self.frameOfReference = frameOfReference;
+          });
           self.addState('vr-mode');
           self.emit('enter-vr', {target: self});
           // Lock to landscape orientation on mobile.
@@ -345,7 +349,7 @@ module.exports.AScene = registerElement('a-scene', {
         if (this.checkHeadsetConnected() || this.isMobile) {
           vrManager.enabled = false;
           vrDisplay = utils.device.getVRDisplay();
-          if (isWebXR()) {
+          if (isWebXRAvailable) {
             this.xrSession.removeEventListener('end', this.exitVRBound);
             this.xrSession.end();
             vrManager.setSession(null);
@@ -691,9 +695,10 @@ module.exports.AScene = registerElement('a-scene', {
      * Renders with request animation frame.
      */
     render: {
-      value: function () {
+      value: function (time, frame) {
         var renderer = this.renderer;
 
+        this.frame = frame;
         this.delta = this.clock.getDelta() * 1000;
         this.time = this.clock.elapsedTime * 1000;
 

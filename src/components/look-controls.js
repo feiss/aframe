@@ -180,11 +180,16 @@ module.exports.Component = registerComponent('look-controls', {
    * Mouse-drag only enabled if HMD is not active.
    */
   updateOrientation: function () {
-    var el = this.el;
     var hmdEuler = this.hmdEuler;
+    var object3D = this.el.object3D;
     var pitchObject = this.pitchObject;
     var yawObject = this.yawObject;
     var sceneEl = this.el.sceneEl;
+
+    // WebXR API updates the object3D matrix. Update position, rotation, scale accordingly.
+    if (sceneEl.is('vr-mode') && utils.device.isWebXRAvailable) {
+      object3D.matrix.decompose(object3D.position, object3D.rotation, object3D.scale);
+    }
 
     // In VR mode, THREE is in charge of updating the camera rotation.
     if (sceneEl.is('vr-mode') && sceneEl.checkHeadsetConnected()) { return; }
@@ -193,8 +198,8 @@ module.exports.Component = registerComponent('look-controls', {
     hmdEuler.setFromQuaternion(this.polyfillObject.quaternion, 'YXZ');
 
     // On mobile, do camera rotation with touch events and sensors.
-    el.object3D.rotation.x = hmdEuler.x + pitchObject.rotation.x;
-    el.object3D.rotation.y = hmdEuler.y + yawObject.rotation.y;
+    object3D.rotation.x = hmdEuler.x + pitchObject.rotation.x;
+    object3D.rotation.y = hmdEuler.y + yawObject.rotation.y;
   },
 
   /**
@@ -323,6 +328,7 @@ module.exports.Component = registerComponent('look-controls', {
    */
   onEnterVR: function () {
     this.saveCameraPose();
+    this.el.setAttribute('position', '0 0 0');
   },
 
   /**

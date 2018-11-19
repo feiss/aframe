@@ -3,7 +3,7 @@ const entityFactory = require('../helpers').entityFactory;
 
 const PI = Math.PI;
 
-suite('tracked-controls', function () {
+suite('tracked-controls-webvr', function () {
   var component;
   var controller;
   var el;
@@ -20,7 +20,7 @@ suite('tracked-controls', function () {
         el.parentNode.renderer.vr.getStandingMatrix = function () {
           return standingMatrix;
         };
-        component = el.components['tracked-controls'];
+        component = el.components['tracked-controls-webvr'];
         system = component.system;
         controller = {
           id: 'OpenVR Gamepad',
@@ -35,7 +35,7 @@ suite('tracked-controls', function () {
           axes: [0, 0, 0]
         };
         system.controllers = [controller];
-        el.setAttribute('tracked-controls', 'id', 'OpenVR Gamepad');
+        el.setAttribute('tracked-controls-webvr', 'id', 'OpenVR Gamepad');
         done();
       });
     });
@@ -44,42 +44,42 @@ suite('tracked-controls', function () {
   suite('updateGamepad', function () {
     test('matches controller with same id', function () {
       assert.strictEqual(component.controller, undefined);
-      el.setAttribute('tracked-controls', 'id', 'OpenVR Gamepad');
+      el.setAttribute('tracked-controls-webvr', 'id', 'OpenVR Gamepad');
       component.tick();
       assert.equal(component.controller, controller);
     });
 
     test('matches controller with prefix', function () {
       assert.strictEqual(component.controller, undefined);
-      el.setAttribute('tracked-controls', 'idPrefix', 'OpenVR');
+      el.setAttribute('tracked-controls-webvr', 'idPrefix', 'OpenVR');
       component.tick();
       assert.equal(component.controller, controller);
     });
 
     test('does not match controller by default', function () {
       assert.strictEqual(component.controller, undefined);
-      el.setAttribute('tracked-controls', {}, true);
+      el.setAttribute('tracked-controls-webvr', {}, true);
       component.tick();
       assert.strictEqual(component.controller, undefined);
     });
 
     test('does not match controller with different id', function () {
       assert.strictEqual(component.controller, undefined);
-      el.setAttribute('tracked-controls', 'id', 'foo');
+      el.setAttribute('tracked-controls-webvr', 'id', 'foo');
       component.tick();
       assert.strictEqual(component.controller, undefined);
     });
 
     test('does not match controller with different prefix', function () {
       assert.strictEqual(component.controller, undefined);
-      el.setAttribute('tracked-controls', 'idPrefix', 'foo');
+      el.setAttribute('tracked-controls-webvr', 'idPrefix', 'foo');
       component.tick();
       assert.strictEqual(component.controller, undefined);
     });
 
     test('set controller to undefined if controller not found', function () {
       assert.strictEqual(component.controller, undefined);
-      el.setAttribute('tracked-controls', 'id', 'OpenVR Gamepad');
+      el.setAttribute('tracked-controls-webvr', 'id', 'OpenVR Gamepad');
       component.tick();
       assert.equal(component.controller, controller);
       system.controllers = [];
@@ -109,14 +109,14 @@ suite('tracked-controls', function () {
 
     test('applies position from gamepad pose', function () {
       controller.pose.position = [1, 2, 3];
-      el.sceneEl.systems['tracked-controls'].vrDisplay = true;
+      el.sceneEl.systems['tracked-controls-webvr'].vrDisplay = true;
       component.tick();
       assertVec3(el.getAttribute('position'), [1, 2, 3]);
     });
 
     test('handles unchanged Gamepad position', function () {
       controller.pose.position = [4, 5, -6];
-      el.sceneEl.systems['tracked-controls'].vrDisplay = true;
+      el.sceneEl.systems['tracked-controls-webvr'].vrDisplay = true;
       component.tick();
       el.setAttribute('position', '-1 2 -3');
       component.tick();
@@ -125,7 +125,7 @@ suite('tracked-controls', function () {
 
     test('applies new Gamepad position to manually positioned entity', function () {
       controller.pose.position = [1, 2, 3];
-      el.sceneEl.systems['tracked-controls'].vrDisplay = true;
+      el.sceneEl.systems['tracked-controls-webvr'].vrDisplay = true;
       component.tick();
       assertVec3(el.getAttribute('position'), [1, 2, 3]);
 
@@ -138,7 +138,7 @@ suite('tracked-controls', function () {
     test('applies standing matrix transform', function () {
       standingMatrix.makeTranslation(1, 0.5, -3);
       controller.pose.position = [1, 2, 3];
-      el.sceneEl.systems['tracked-controls'].vrDisplay = true;
+      el.sceneEl.systems['tracked-controls-webvr'].vrDisplay = true;
       component.tick();
       assertVec3(el.getAttribute('position'), [2, 2.5, 0]);
     });
@@ -146,7 +146,7 @@ suite('tracked-controls', function () {
     test('does not apply standing matrix transform for 3DoF', function () {
       standingMatrix.makeTranslation(1, 0.5, -3);
       controller.pose.position = null;
-      el.sceneEl.systems['tracked-controls'].vrDisplay = true;
+      el.sceneEl.systems['tracked-controls-webvr'].vrDisplay = true;
       component.tick();
       // assert position after default camera position and arm model are applied
       assertVec3CloseTo(el.getAttribute('position'), [0.28, 1.12, -0.32], 0.01);
@@ -163,14 +163,14 @@ suite('tracked-controls', function () {
 
     test('applies rotation from Gamepad pose', function () {
       controller.pose.orientation = toQuaternion(PI, PI / 2, PI / 3);
-      el.sceneEl.systems['tracked-controls'].vrDisplay = true;
+      el.sceneEl.systems['tracked-controls-webvr'].vrDisplay = true;
       component.tick();
       assertQuaternion(el.object3D.quaternion, controller.pose.orientation);
     });
 
     test('applies rotation absolutely', function () {
       controller.pose.orientation = toQuaternion(PI, PI / 2, PI / 3);
-      el.sceneEl.systems['tracked-controls'].vrDisplay = true;
+      el.sceneEl.systems['tracked-controls-webvr'].vrDisplay = true;
       el.setAttribute('rotation', '180 90 60');
       component.tick();
       assertQuaternion(el.object3D.quaternion, controller.pose.orientation);
@@ -182,13 +182,13 @@ suite('tracked-controls', function () {
 
     test('handles unchanged Gamepad rotation', function () {
       controller.pose.orientation = toQuaternion(PI, PI / 2, PI / 3);
-      el.sceneEl.systems['tracked-controls'].vrDisplay = true;
+      el.sceneEl.systems['tracked-controls-webvr'].vrDisplay = true;
       component.tick();
       assertQuaternion(el.object3D.quaternion, controller.pose.orientation);
     });
 
     test('applies orientation offset', function () {
-      el.setAttribute('tracked-controls', 'orientationOffset', {x: 3, y: 4, z: 5});
+      el.setAttribute('tracked-controls-webvr', 'orientationOffset', {x: 3, y: 4, z: 5});
       component.tick();
       var rotation = el.getAttribute('rotation');
       rotation.x = Math.round(rotation.x);
